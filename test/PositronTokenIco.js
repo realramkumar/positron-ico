@@ -45,8 +45,8 @@ contract('PositronTokenIco', accounts => {
   const buyerThreeWallet = accounts[4];
 
   const oneEth = toWei(1);
-  const minCap = toWei(2);
-  const maxCap = toWei(5);
+  const minCap = toWei(2889);
+  const maxCap = toWei(2975);
 
   const createToken = () => PositronTokenIco.new(fundsWallet, timeController.currentTimestamp(), minCap, maxCap);
 
@@ -54,9 +54,9 @@ contract('PositronTokenIco', accounts => {
   // 18 decimals (reflecting ether’s smallest unit - wei) 
   // and total supply of 1,000,000 units created at contract deployment 
   // and assigned to a specific wallet,
-  it('should have initial supply of 1,000,000 units assigned to funds wallet', async () => {
+  it('should have initial supply of 105,000,000 units assigned to funds wallet', async () => {
     const positronToken = await createToken();
-    const expectedSupply = toWei(1000000);
+    const expectedSupply = toWei(105000000);
 
     const totalSupply = await positronToken.totalSupply();
     assert.equal(totalSupply, expectedSupply, 'Total supply mismatch');
@@ -65,7 +65,7 @@ contract('PositronTokenIco', accounts => {
     assert.equal(fundsWalletBalance.toNumber(), expectedSupply, 'Initial funds wallet balance mismatch');
   });
 
-  // REQ002: The ICO is going to last 4 weeks, 
+  // REQ002: The ICO is going to last 57 days, 
   // trying to raise a minimum of 1,000 ETH and maximum of 20,000 ETH;
   // if the goal is not met the ICO continues until the payments reach the min cap
   it('should open at startTimestamp', async () => {
@@ -81,11 +81,11 @@ contract('PositronTokenIco', accounts => {
     await positronToken.sendTransaction(transaction(buyerOneWallet, oneEth));
   });
 
-  it('should last 4 weeks if the goal is reached and allow token transfers afterwards', async () => {
+  it('should last 57 days if the goal is reached and allow token transfers afterwards', async () => {
     const positronToken = await createToken();
 
     await positronToken.sendTransaction(transaction(buyerOneWallet, minCap));
-    await timeController.addDays(4 * 7);
+    await timeController.addDays(57);
 
     // should be closed
     await assertExpectedError(positronToken.sendTransaction(transaction(buyerTwoWallet, oneEth)));
@@ -97,11 +97,11 @@ contract('PositronTokenIco', accounts => {
     await positronToken.transfer(buyerTwoWallet, 1, { from: buyerOneWallet });
   });
 
-  it('should last more then 4 weeks if the goal is not reached and allow token transfers after closing', async () => {
+  it('should last more then 57 days if the goal is not reached and allow token transfers after closing', async () => {
     const positronToken = await createToken();
 
     await positronToken.sendTransaction(transaction(buyerOneWallet, oneEth));
-    await timeController.addDays(4 * 7 + 1);
+    await timeController.addDays(57 + 1);
 
     // should still be open
     await positronToken.sendTransaction(transaction(buyerTwoWallet, minCap - oneEth));
@@ -166,25 +166,23 @@ contract('PositronTokenIco', accounts => {
     await assertExpectedError(positronToken.transfer(buyerTwoWallet, 1, { from: buyerOneWallet }));
   });
 
-  // REQ005: The tokens are going to be sold at a flat rate of 1 ETH : 50 ESP, 
-  // with added +50% bonus during the first week.
-  it('should be sold with +50% bonus during the first week', async () => {
+  it('should be sold with 2700XPN/1ETH till 666ETH ', async () => {
     const positronToken = await createToken();
 
     await positronToken.sendTransaction(transaction(buyerOneWallet, oneEth));
 
     const buyerOneBalance = await positronToken.balanceOf(buyerOneWallet);
-    assert.equal(buyerOneBalance.toNumber(), 50 * oneEth * 1.5, 'Buyer one token balance mismatch');
+    assert.equal(buyerOneBalance.toNumber(), 2700 * oneEth, 'Buyer one token balance mismatch');
   });
 
-  it('should be sold with no bonus after the first week', async () => {
+  it('should be sold with 2400XPN/1ETH after 666ETH', async () => {
     const positronToken = await createToken();
 
-    await timeController.addDays(7);
+    await positronToken.sendTransaction(transaction(buyerTwoWallet, oneEth * 666));
     await positronToken.sendTransaction(transaction(buyerOneWallet, oneEth));
 
     const buyerOneBalance = await positronToken.balanceOf(buyerOneWallet);
-    assert.equal(buyerOneBalance.toNumber(), 50 * oneEth, 'Buyer one token balance mismatch');
+    assert.equal(buyerOneBalance.toNumber(), 2400 * oneEth, 'Buyer one token balance mismatch');
   });
 
 });

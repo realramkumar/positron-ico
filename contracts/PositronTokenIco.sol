@@ -11,34 +11,27 @@ contract PositronTokenIco is StandardToken {
     string public symbol = "XPN";
     uint256 public decimals = 18;
 
-    uint256 public totalSupply = 1000000 * (uint256(10) ** decimals);
+    uint256 public totalSupply = 105000000 * (uint256(10) ** decimals);
     uint256 public totalRaised; // total ether raised (in wei)
 
-    uint256 public startTimestamp; // timestamp after which ICO will start
-    uint256 public durationSeconds = 4 * 7 * 24 * 60 * 60; // 4 weeks
+    uint256 public startTimestamp = 1527358440; // timestamp after which ICO will start
+    uint256 public durationSeconds = 57 * 24 * 60 * 60; // 4 weeks
 
-    uint256 public minCap; // the ICO ether goal (in wei)
-    uint256 public maxCap; // the ICO ether max cap (in wei)
+    uint256 public minCap = 2889 * (uint256(10) ** decimals); // the ICO ether goal (in wei)
+    uint256 public maxCap = 2975 * (uint256(10) ** decimals); // the ICO ether max cap (in wei)
 
     /**
      * Address which will receive raised funds 
      * and owns the total supply of tokens
      */
-    address public fundsWallet;
+    address public fundsWallet = 0xbf433E428cf963AAe13cA3D58B2f36F2d8E7498c;
 
-    constructor(
-        address _fundsWallet,
-        uint256 _startTimestamp,
-        uint256 _minCap,
-        uint256 _maxCap) public {
-        fundsWallet = _fundsWallet;
-        startTimestamp = _startTimestamp;
-        minCap = _minCap;
-        maxCap = _maxCap;
-
+    
+    constructor() public {
         // initially assign all tokens to the fundsWallet
         balances[fundsWallet] = totalSupply;
         emit Transfer(0x0, fundsWallet, totalSupply);
+
     }
 
     function() isIcoOpen payable public {
@@ -54,14 +47,14 @@ contract PositronTokenIco is StandardToken {
     }
 
     function calculateTokenAmount(uint256 weiAmount) constant private returns(uint256) {
-        // standard rate: 1 ETH : 50 ESP
-        uint256 tokenAmount = weiAmount.mul(50);
-        if (now <= startTimestamp + 7 days) {
-            // +50% bonus during first week
-            return tokenAmount.mul(150).div(100);
+        uint256 tokenAmount;
+        uint256 initialDiscount = 666 * 1 ether;
+        if (totalRaised < initialDiscount) {
+            tokenAmount = weiAmount.mul(2700);
         } else {
-            return tokenAmount;
+            tokenAmount = weiAmount.mul(2400);
         }
+        return tokenAmount;
     }
 
     function transfer(address _to, uint _value) isIcoFinished public returns (bool) {
